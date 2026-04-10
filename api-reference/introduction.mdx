@@ -5,7 +5,10 @@ description: 'Overview of the Samora AI Outbound Call API'
 
 ## Overview
 
-The Samora AI Outbound Call API lets you trigger immediate outbound calls through the Samora AI system. Use it to start calls with your AI agents, pass context via metadata, and retrieve call details including transcripts and recordings.
+The Samora AI Outbound Call API lets you trigger immediate outbound calls
+through the Samora AI system. Use it to start calls with your AI agents, pass
+context via metadata, and retrieve call details including transcripts and
+recordings.
 
 ## Base URL
 
@@ -19,9 +22,9 @@ https://api.samora.ai
 
 Every request must include your organization API key in the header:
 
-| Header     | Description                        |
-| ---------- | ---------------------------------- |
-| `X-API-Key` | Your unique organization API key   |
+| Header      | Description                      |
+| ----------- | -------------------------------- |
+| `X-API-Key` | Your unique organization API key |
 
 Example:
 
@@ -34,14 +37,28 @@ curl -X POST "https://api.samora.ai/v1/call/trigger" \
 
 ## Endpoints
 
-| Method | Path              | Description                    |
-| ------ | ----------------- | ------------------------------ |
-| POST   | `/v1/call/trigger` | [Trigger an outbound call](/api-reference/endpoint/trigger-call)       |
+### Calls
+
+| Method | Path                 | Description                                                                 |
+| ------ | -------------------- | --------------------------------------------------------------------------- |
+| POST   | `/v1/call/trigger`   | [Trigger an outbound call](/api-reference/endpoint/trigger-call)            |
 | GET    | `/v1/call/{call_id}` | [Get details for a specific call](/api-reference/endpoint/get-call-details) |
+
+### Webhooks
+
+| Method | Path                        | Description                                                           |
+| ------ | --------------------------- | --------------------------------------------------------------------- |
+| POST   | `/v2/webhooks`              | [Create a webhook](/api-reference/endpoint/create-webhook)            |
+| GET    | `/v2/webhooks`              | [List webhooks](/api-reference/endpoint/list-webhooks)                |
+| GET    | `/v2/webhooks/events`       | [Get webhook event types](/api-reference/endpoint/get-webhook-events) |
+| GET    | `/v2/webhooks/{webhook_id}` | [Get webhook details](/api-reference/endpoint/get-webhook)            |
+| PUT    | `/v2/webhooks/{webhook_id}` | [Update a webhook](/api-reference/endpoint/update-webhook)            |
+| DELETE | `/v2/webhooks/{webhook_id}` | [Delete a webhook](/api-reference/endpoint/delete-webhook)            |
 
 ## Phone number format
 
-Destination numbers must be in **E.164** format (e.g. `+919876543210`) and include the country code. The pattern is: `+` followed by 10–15 digits.
+Destination numbers must be in **E.164** format (e.g. `+919876543210`) and
+include the country code. The pattern is: `+` followed by 10–15 digits.
 
 ## Call statuses
 
@@ -60,6 +77,24 @@ For finished calls, the Get call details response can include:
 
 - **transcript_url** — Presigned URL for the call transcript (valid 60 minutes)
 - **recording_url** — Presigned URL for the call recording (valid 60 minutes)
+
+## Webhooks
+
+Webhooks let you receive real-time notifications when call events occur. You can
+subscribe to specific event types:
+
+- `CALL_STARTED` — Triggered when a call begins
+- `CALL_FINISHED` — Triggered when a call ends (transcript and recording
+  available)
+- `CALL_FAILED` — Triggered when a call fails, is rejected, or goes unanswered
+
+Each webhook includes a signing secret (returned only at creation) for verifying
+payloads. You can optionally include transcript data and recording URLs in the
+webhook payload via `data_options`.
+
+<Note>
+	Webhook endpoints use the `/v2/webhooks` base path at `https://api.samora.ai`.
+</Note>
 
 ## Support
 

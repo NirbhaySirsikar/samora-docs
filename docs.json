@@ -1,66 +1,75 @@
 {
-  "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
-  "name": "samora-docs",
-  "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
-  },
-  "favicon": "/favicon.svg",
-  "api": {
-    "openapi": "api-reference/openapi.json"
-  },
-  "navigation": {
-    "groups": [
-      {
-        "group": "Getting started",
-        "pages": [
-          "api-reference/introduction"
-        ]
-      },
-      {
-        "group": "API reference",
-        "pages": [
-          "api-reference/endpoint/trigger-call",
-          "api-reference/endpoint/get-call-details"
-        ]
-      }
-    ]
-  },
-  "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
-  },
-  "navbar": {
-    "links": [
-      {
-        "label": "Support",
-        "href": "mailto:vineeth@samora.ai"
-      }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Dashboard",
-      "href": "https://app.samora.ai"
-    }
-  },
-  "contextual": {
-    "options": [
-      "copy",
-      "view",
-      "chatgpt",
-      "claude",
-      "perplexity",
-      "mcp",
-      "cursor",
-      "vscode"
-    ]
-  },
-  "footer": {
-    "socials": {
-      "linkedin": "https://www.linkedin.com/company/samora-ai"
-    },
-    "hideMintlifyBranding": true
-  }
+	"$schema": "https://mintlify.com/docs.json",
+	"theme": "mint",
+	"name": "samora-docs",
+	"colors": {
+		"primary": "#16A34A",
+		"light": "#07C983",
+		"dark": "#15803D"
+	},
+	"favicon": "/favicon.svg",
+	"api": {
+		"openapi": "api-reference/openapi.json"
+	},
+	"navigation": {
+		"groups": [
+			{
+				"group": "Getting started",
+				"pages": ["api-reference/introduction"]
+			},
+			{
+				"group": "API reference",
+				"pages": [
+					"api-reference/endpoint/trigger-call",
+					"api-reference/endpoint/get-call-details"
+				]
+			},
+			{
+				"group": "Webhooks",
+				"pages": [
+					"api-reference/endpoint/create-webhook",
+					"api-reference/endpoint/list-webhooks",
+					"api-reference/endpoint/get-webhook-events",
+					"api-reference/endpoint/get-webhook",
+					"api-reference/endpoint/update-webhook",
+					"api-reference/endpoint/delete-webhook"
+				]
+			}
+		]
+	},
+	"logo": {
+		"light": "/logo/light.svg",
+		"dark": "/logo/dark.svg"
+	},
+	"navbar": {
+		"links": [
+			{
+				"label": "Support",
+				"href": "mailto:vineeth@samora.ai"
+			}
+		],
+		"primary": {
+			"type": "button",
+			"label": "Dashboard",
+			"href": "https://app.samora.ai"
+		}
+	},
+	"contextual": {
+		"options": [
+			"copy",
+			"view",
+			"chatgpt",
+			"claude",
+			"perplexity",
+			"mcp",
+			"cursor",
+			"vscode"
+		]
+	},
+	"footer": {
+		"socials": {
+			"linkedin": "https://www.linkedin.com/company/samora-ai"
+		},
+		"hideMintlifyBranding": true
+	}
 }
