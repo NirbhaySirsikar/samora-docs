@@ -25,6 +25,28 @@
 				]
 			},
 			{
+				"group": "Telephony",
+				"pages": [
+					"api-reference/endpoint/list-available-numbers",
+					"api-reference/endpoint/buy-number",
+					"api-reference/endpoint/list-purchased-numbers",
+					"api-reference/endpoint/release-number",
+					"api-reference/endpoint/link-number-to-agent",
+					"api-reference/endpoint/unlink-number-from-agent"
+				]
+			},
+			{
+				"group": "Campaigns",
+				"pages": [
+					"api-reference/endpoint/create-campaign",
+					"api-reference/endpoint/list-campaigns",
+					"api-reference/endpoint/get-campaign",
+					"api-reference/endpoint/toggle-campaign",
+					"api-reference/endpoint/download-campaign-report",
+					"api-reference/endpoint/get-campaign-calls"
+				]
+			},
+			{
 				"group": "Webhooks",
 				"pages": [
 					"api-reference/endpoint/create-webhook",

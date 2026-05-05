@@ -1,8 +1,8 @@
 {
 	"openapi": "3.0.3",
 	"info": {
-		"title": "Samora AI Outbound Call API",
-		"description": "The Samora AI Outbound Call API lets you trigger immediate outbound calls through the Samora AI system. Use it to start calls with your AI agents, pass context via metadata, and retrieve call details including transcripts and recordings.\n\n**Phone number format:** Destination numbers must be in E.164 format (e.g. `+919876543210`) and include the country code. The pattern is: `+` followed by 10-15 digits.\n\n**Call statuses:** When you fetch call details, `status` can be: `PENDING`, `TRIGGERED`, `ONGOING`, `CALL_FINISHED`, `UNANSWERED`, `REJECTED`.\n\n**Transcripts and recordings:** For finished calls, presigned URLs for transcript and recording are valid for 60 minutes.\n",
+		"title": "Samora API",
+		"description": "Samora API lets you trigger outbound calls, manage telephony numbers, and configure webhooks.\n\n**Phone number format:** Destination numbers must be in E.164 format (e.g. `+919876543210`) and include country code. Pattern: `+` followed by 10-15 digits.\n\n**Call statuses:** When you fetch call details, `status` can be: `PENDING`, `TRIGGERED`, `ONGOING`, `CALL_FINISHED`, `UNANSWERED`, `REJECTED`.\n\n**Authentication:** Some endpoints use organization API keys, while workspace telephony endpoints use Bearer tokens from dashboard authentication.\n",
 		"version": "1.0.0",
 		"license": {
 			"name": "Proprietary"
@@ -12,6 +12,10 @@
 		{
 			"url": "https://api.samora.ai",
 			"description": "Production server"
+		},
+		{
+			"url": "http://localhost:4324",
+			"description": "Local development server"
 		}
 	],
 	"security": [
@@ -171,6 +175,998 @@
 											"message": "Call not found or does not belong to your company"
 										}
 									}
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal server error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/v1/telephony/numbers/search": {
+			"get": {
+				"description": "Lists available phone numbers from current provider inventory. Results can be paginated and filtered by region.",
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"name": "limit",
+						"in": "query",
+						"required": false,
+						"description": "Maximum number of results to return. Default: 20.",
+						"schema": {
+							"type": "integer",
+							"minimum": 1,
+							"default": 20
+						}
+					},
+					{
+						"name": "offset",
+						"in": "query",
+						"required": false,
+						"description": "Pagination offset. Default: 0.",
+						"schema": {
+							"type": "integer",
+							"minimum": 0,
+							"default": 0
+						}
+					},
+					{
+						"name": "region",
+						"in": "query",
+						"required": false,
+						"description": "Optional region filter.",
+						"schema": {
+							"type": "string",
+							"example": "Karnataka"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Available phone numbers",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SearchNumbersResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid pagination parameters",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal server error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/v1/telephony/numbers/purchase": {
+			"post": {
+				"description": "Purchases phone number and adds it to your workspace inventory.",
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/PurchaseNumberRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Phone number purchased",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PurchaseNumberResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid request body",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "User not allowed to purchase numbers",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					},
+					"409": {
+						"description": "Number already purchased",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					},
+					"502": {
+						"description": "Provider error during purchase",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/v1/telephony/company/numbers": {
+			"get": {
+				"description": "Lists purchased phone numbers in your workspace. Optionally filter by assignment status.",
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"name": "type",
+						"in": "query",
+						"required": false,
+						"description": "Optional assignment filter.",
+						"schema": {
+							"type": "string",
+							"enum": ["assigned", "unassigned"]
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Purchased phone numbers",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CompanyNumbersResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal server error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/v1/telephony/company/numbers/{number_id}": {
+			"delete": {
+				"description": "Releases purchased phone number from your workspace inventory.",
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"name": "number_id",
+						"in": "path",
+						"required": true,
+						"description": "Workspace phone number ID.",
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Phone number released",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ReleaseNumberResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid number ID format",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Number not found",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					},
+					"502": {
+						"description": "Provider error during release",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/v1/telephony/agent/{agent_type}/{agent_id}/numbers/{number_id}/assign": {
+			"put": {
+				"description": "Links purchased phone number to agent.",
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"name": "agent_type",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"enum": ["inbound", "outbound"]
+						}
+					},
+					{
+						"name": "agent_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					},
+					{
+						"name": "number_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Number linked to agent",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ActionMessageResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid agent type or ID format",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Agent or number not found",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					},
+					"409": {
+						"description": "Number already linked",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/v1/telephony/agent/{agent_type}/{agent_id}/number/{number_id}/unassign": {
+			"put": {
+				"description": "Unlinks purchased phone number from agent.",
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"name": "agent_type",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"enum": ["inbound", "outbound"]
+						}
+					},
+					{
+						"name": "agent_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					},
+					{
+						"name": "number_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Number unlinked from agent",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ActionMessageResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid agent type or ID format",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Number not found",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					},
+					"409": {
+						"description": "Agent not linked to this number",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/v1/campaigns/{agent_id}": {
+			"post": {
+				"description": "Creates a draft campaign for an outbound agent. Send `multipart/form-data` and include a `file` field to upload the campaign CSV in the same request.",
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"name": "agent_id",
+						"in": "path",
+						"required": true,
+						"description": "Outbound agent UUID.",
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CreateCampaignRequest"
+							},
+							"examples": {
+								"basic": {
+									"value": {
+										"name": "Q4 Renewals",
+										"cps": 2,
+										"metadata": {
+											"max_retries": 2,
+											"voicemail_msg": "We missed you."
+										},
+										"retry_config": {
+											"max_retries": 2,
+											"retry_delay_minutes": 15,
+											"retry_on": ["UNANSWERED", "VOICEMAIL"]
+										}
+									}
+								}
+							}
+						},
+						"multipart/form-data": {
+							"schema": {
+								"$ref": "#/components/schemas/CreateCampaignMultipartRequest"
+							},
+							"encoding": {
+								"file": {
+									"contentType": "text/csv"
+								}
+							}
+						}
+					}
+				},
+				"responses": {
+					"201": {
+						"description": "Campaign created successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CreateCampaignResponse"
+								},
+								"examples": {
+									"withUpload": {
+										"value": {
+											"message": "Campaign created successfully",
+											"campaign_id": "550e8400-e29b-41d4-a716-446655440000",
+											"upload": {
+												"success": true,
+												"message": "Successfully uploaded 250 phone numbers",
+												"file_url": "https://bucket.s3.ap-south-1.amazonaws.com/campaigns/.../upload.csv",
+												"scheduled_calls_created": 250,
+												"campaign_id": "550e8400-e29b-41d4-a716-446655440000"
+											}
+										}
+									}
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid request body or CSV file",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Agent not found",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal server error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/v1/company/campaigns": {
+			"get": {
+				"description": "Lists campaigns across the workspace. You can filter by campaign status, agent, search term, and sort order.",
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"name": "page",
+						"in": "query",
+						"schema": {
+							"type": "integer",
+							"default": 1
+						}
+					},
+					{
+						"name": "page_size",
+						"in": "query",
+						"schema": {
+							"type": "integer",
+							"default": 10
+						}
+					},
+					{
+						"name": "search",
+						"in": "query",
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "status",
+						"in": "query",
+						"description": "Repeat the query param to filter multiple statuses.",
+						"schema": {
+							"type": "string",
+							"enum": ["DRAFT", "PAUSED", "IN_PROGRESS", "SCHEDULED", "FINISHED", "FAILED", "CANCELLED"]
+						}
+					},
+					{
+						"name": "agent_id",
+						"in": "query",
+						"description": "Repeat the query param to filter multiple agent IDs.",
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					},
+					{
+						"name": "sort_by",
+						"in": "query",
+						"schema": {
+							"type": "string",
+							"enum": ["created_at", "updated_at", "name", "status", "agent_name", "total_calls", "finished_calls", "total_duration"]
+						}
+					},
+					{
+						"name": "sort_dir",
+						"in": "query",
+						"schema": {
+							"type": "string",
+							"enum": ["asc", "desc"],
+							"default": "desc"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Campaigns retrieved successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CampaignListResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid query parameters",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal server error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/v1/campaigns/{agent_id}/{campaign_id}": {
+			"get": {
+				"description": "Returns campaign details and aggregate call stats for a single campaign.",
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"name": "agent_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					},
+					{
+						"name": "campaign_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Campaign retrieved successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CampaignDetailsResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid agent ID or campaign ID",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Campaign not found",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal server error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/v1/campaigns/{agent_id}/{campaign_id}/toggle": {
+			"post": {
+				"description": "Starts or pauses a campaign from a single endpoint. Use `action=start` to move a draft or paused campaign into progress. Use `action=pause` or `action=stop` to pause it.",
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"name": "agent_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					},
+					{
+						"name": "campaign_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ToggleCampaignRequest"
+							},
+							"examples": {
+								"pause": {
+									"value": {
+										"action": "pause"
+									}
+								}
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Campaign state updated successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CampaignActionResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid action or UUID",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Campaign or agent not found",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal server error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/v1/campaigns/{agent_id}/{campaign_id}/report": {
+			"get": {
+				"description": "Downloads campaign reporting output. Without query parameters the response returns a presigned `report_url`. If you pass query filters, the endpoint streams a CSV file using the same filters as the scheduled-calls listing endpoint.",
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"name": "agent_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					},
+					{
+						"name": "campaign_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Report URL or streamed CSV report",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CampaignReportURLResponse"
+								}
+							},
+							"text/csv": {
+								"schema": {
+									"type": "string",
+									"format": "binary"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid campaign ID or query params",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Campaign not found",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal server error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/v1/campaigns/{agent_id}/{campaign_id}/scheduled-calls": {
+			"get": {
+				"description": "Lists calls created under a campaign, along with campaign-level call stats.",
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"name": "agent_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					},
+					{
+						"name": "campaign_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					},
+					{
+						"name": "page",
+						"in": "query",
+						"schema": {
+							"type": "integer",
+							"default": 1
+						}
+					},
+					{
+						"name": "page_size",
+						"in": "query",
+						"schema": {
+							"type": "integer",
+							"default": 10
+						}
+					},
+					{
+						"name": "search",
+						"in": "query",
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "status",
+						"in": "query",
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "flagged",
+						"in": "query",
+						"schema": {
+							"type": "boolean"
+						}
+					},
+					{
+						"name": "tags[]",
+						"in": "query",
+						"description": "Repeat to filter by multiple tags.",
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Scheduled calls retrieved successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ScheduledCallsListResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid agent ID, campaign ID, or query params",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Campaign not found",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
 								}
 							}
 						}
@@ -639,6 +1635,12 @@
 				"in": "header",
 				"name": "X-API-Key",
 				"description": "Your unique organization API key. Required on all requests."
+			},
+			"BearerAuth": {
+				"type": "http",
+				"scheme": "bearer",
+				"bearerFormat": "JWT",
+				"description": "Workspace Bearer token from dashboard authentication."
 			}
 		},
 		"schemas": {
@@ -970,6 +1972,640 @@
 						"items": {
 							"$ref": "#/components/schemas/EventCatalog"
 						}
+					}
+				},
+				"additionalProperties": false
+			},
+			"ActionMessageResponse": {
+				"type": "object",
+				"required": ["message"],
+				"properties": {
+					"message": {
+						"type": "string"
+					}
+				},
+				"additionalProperties": false
+			},
+			"AvailablePhoneNumber": {
+				"type": "object",
+				"required": ["country", "region", "number", "cost"],
+				"properties": {
+					"country": {
+						"type": "string"
+					},
+					"region": {
+						"type": "string"
+					},
+					"number": {
+						"type": "string",
+						"description": "Phone number in provider inventory."
+					},
+					"cost": {
+						"type": "integer",
+						"description": "Display cost in smallest billing unit used by workspace UI."
+					}
+				},
+				"additionalProperties": false
+			},
+			"SearchNumbersResponse": {
+				"type": "object",
+				"required": ["message", "data"],
+				"properties": {
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"type": "object",
+						"required": ["phone_numbers", "total_count"],
+						"properties": {
+							"phone_numbers": {
+								"type": "array",
+								"items": {
+									"$ref": "#/components/schemas/AvailablePhoneNumber"
+								}
+							},
+							"total_count": {
+								"type": "integer"
+							}
+						},
+						"additionalProperties": false
+					}
+				},
+				"additionalProperties": false
+			},
+			"PurchaseNumberRequest": {
+				"type": "object",
+				"required": ["number", "country", "monthly_rental_fee"],
+				"properties": {
+					"number": {
+						"type": "string",
+						"description": "Phone number to purchase."
+					},
+					"country": {
+						"type": "string",
+						"description": "Country code for number inventory item.",
+						"example": "IN"
+					},
+					"monthly_rental_fee": {
+						"type": "string",
+						"description": "Monthly rental fee as decimal string.",
+						"example": "250.00"
+					}
+				},
+				"additionalProperties": false
+			},
+			"PurchasedPhoneNumber": {
+				"type": "object",
+				"required": ["id", "created_at", "updated_at", "number", "outbound_agent_id", "outbound_agent_name", "country", "monthly_rental_fee"],
+				"properties": {
+					"id": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"created_at": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"updated_at": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"number": {
+						"type": "string"
+					},
+					"inbound_agent_id": {
+						"type": "string",
+						"format": "uuid",
+						"nullable": true
+					},
+					"inbound_agent_name": {
+						"type": "string",
+						"nullable": true
+					},
+					"outbound_agent_id": {
+						"type": "array",
+						"items": {
+							"type": "string",
+							"format": "uuid"
+						}
+					},
+					"outbound_agent_name": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						}
+					},
+					"country": {
+						"type": "string"
+					},
+					"monthly_rental_fee": {
+						"type": "string",
+						"example": "250.00"
+					}
+				},
+				"additionalProperties": false
+			},
+			"PurchaseNumberResponse": {
+				"type": "object",
+				"required": ["message", "data"],
+				"properties": {
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"type": "object",
+						"required": ["id", "number", "country", "monthly_rental_fee"],
+						"properties": {
+							"id": {
+								"type": "string",
+								"format": "uuid"
+							},
+							"number": {
+								"type": "string"
+							},
+							"country": {
+								"type": "string"
+							},
+							"monthly_rental_fee": {
+								"type": "string",
+								"example": "250.00"
+							}
+						},
+						"additionalProperties": false
+					}
+				},
+				"additionalProperties": false
+			},
+			"CompanyNumbersResponse": {
+				"type": "object",
+				"required": ["message", "data"],
+				"properties": {
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/PurchasedPhoneNumber"
+						}
+					}
+				},
+				"additionalProperties": false
+			},
+			"ReleaseNumberResponse": {
+				"type": "object",
+				"required": ["message", "data"],
+				"properties": {
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"type": "object",
+						"required": ["id", "number", "country"],
+						"properties": {
+							"id": {
+								"type": "string",
+								"format": "uuid"
+							},
+							"number": {
+								"type": "string"
+							},
+							"country": {
+								"type": "string"
+							}
+						},
+						"additionalProperties": false
+					}
+				},
+				"additionalProperties": false
+			},
+			"CampaignMetadata": {
+				"type": "object",
+				"properties": {
+					"max_retries": {
+						"type": "integer"
+					},
+					"voicemail_msg": {
+						"type": "string"
+					}
+				},
+				"additionalProperties": false
+			},
+			"CampaignRetryConfig": {
+				"type": "object",
+				"properties": {
+					"max_retries": {
+						"type": "integer"
+					},
+					"retry_delay_minutes": {
+						"type": "integer"
+					},
+					"retry_on": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						}
+					}
+				},
+				"additionalProperties": false
+			},
+			"CampaignScheduleConfig": {
+				"type": "object",
+				"properties": {
+					"scheduled_at": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"schedule_name": {
+						"type": "string"
+					},
+					"action": {
+						"type": "string"
+					}
+				},
+				"additionalProperties": false
+			},
+			"CreateCampaignRequest": {
+				"type": "object",
+				"required": ["name"],
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"cps": {
+						"type": "integer",
+						"default": 1
+					},
+					"metadata": {
+						"$ref": "#/components/schemas/CampaignMetadata"
+					},
+					"retry_config": {
+						"$ref": "#/components/schemas/CampaignRetryConfig"
+					}
+				},
+				"additionalProperties": false
+			},
+			"CreateCampaignMultipartRequest": {
+				"type": "object",
+				"required": ["name"],
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"cps": {
+						"type": "integer",
+						"default": 1
+					},
+					"metadata": {
+						"type": "string",
+						"description": "JSON string matching the `CampaignMetadata` schema."
+					},
+					"retry_config": {
+						"type": "string",
+						"description": "JSON string matching the `CampaignRetryConfig` schema."
+					},
+					"file": {
+						"type": "string",
+						"format": "binary",
+						"description": "Optional CSV file. The first column must be named `Numbers`."
+					}
+				},
+				"additionalProperties": false
+			},
+			"UploadCSVResponse": {
+				"type": "object",
+				"required": ["success", "message", "file_url", "scheduled_calls_created", "campaign_id"],
+				"properties": {
+					"success": {
+						"type": "boolean"
+					},
+					"message": {
+						"type": "string"
+					},
+					"file_url": {
+						"type": "string",
+						"format": "uri"
+					},
+					"scheduled_calls_created": {
+						"type": "integer"
+					},
+					"campaign_id": {
+						"type": "string",
+						"format": "uuid"
+					}
+				},
+				"additionalProperties": false
+			},
+			"CreateCampaignResponse": {
+				"type": "object",
+				"required": ["message", "campaign_id"],
+				"properties": {
+					"message": {
+						"type": "string"
+					},
+					"campaign_id": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"upload": {
+						"$ref": "#/components/schemas/UploadCSVResponse"
+					}
+				},
+				"additionalProperties": false
+			},
+			"CampaignCallStats": {
+				"type": "object",
+				"required": ["total", "finished", "pending", "unanswered", "failed", "total_duration"],
+				"properties": {
+					"total": {
+						"type": "integer"
+					},
+					"finished": {
+						"type": "integer"
+					},
+					"pending": {
+						"type": "integer"
+					},
+					"unanswered": {
+						"type": "integer"
+					},
+					"failed": {
+						"type": "integer"
+					},
+					"total_duration": {
+						"type": "string",
+						"example": "1h 12m 8s"
+					}
+				},
+				"additionalProperties": false
+			},
+			"Campaign": {
+				"type": "object",
+				"required": ["id", "name", "agent_id", "status", "cps", "created_at", "updated_at"],
+				"properties": {
+					"id": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"name": {
+						"type": "string"
+					},
+					"agent_id": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"status": {
+						"type": "string",
+						"enum": ["DRAFT", "PAUSED", "IN_PROGRESS", "SCHEDULED", "FINISHED", "FAILED", "CANCELLED"]
+					},
+					"cps": {
+						"type": "integer"
+					},
+					"metadata": {
+						"$ref": "#/components/schemas/CampaignMetadata"
+					},
+					"retry_config": {
+						"$ref": "#/components/schemas/CampaignRetryConfig"
+					},
+					"schedule_config": {
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/CampaignScheduleConfig"
+							}
+						],
+						"nullable": true
+					},
+					"created_at": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"updated_at": {
+						"type": "string",
+						"format": "date-time"
+					}
+				},
+				"additionalProperties": false
+			},
+			"CampaignWithAgent": {
+				"allOf": [
+					{
+						"$ref": "#/components/schemas/Campaign"
+					},
+					{
+						"type": "object",
+						"required": ["agent_name"],
+						"properties": {
+							"agent_name": {
+								"type": "string"
+							},
+							"call_stats": {
+								"$ref": "#/components/schemas/CampaignCallStats"
+							}
+						},
+						"additionalProperties": false
+					}
+				]
+			},
+			"CampaignListResponse": {
+				"type": "object",
+				"required": ["campaigns", "page", "page_size", "total"],
+				"properties": {
+					"campaigns": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/CampaignWithAgent"
+						}
+					},
+					"page": {
+						"type": "integer"
+					},
+					"page_size": {
+						"type": "integer"
+					},
+					"total": {
+						"type": "integer"
+					}
+				},
+				"additionalProperties": false
+			},
+			"CampaignDetailsResponse": {
+				"type": "object",
+				"required": ["campaign", "stats"],
+				"properties": {
+					"campaign": {
+						"$ref": "#/components/schemas/Campaign"
+					},
+					"stats": {
+						"$ref": "#/components/schemas/CampaignCallStats"
+					}
+				},
+				"additionalProperties": false
+			},
+			"ToggleCampaignRequest": {
+				"type": "object",
+				"required": ["action"],
+				"properties": {
+					"action": {
+						"type": "string",
+						"enum": ["start", "stop", "pause"]
+					}
+				},
+				"additionalProperties": false
+			},
+			"CampaignActionResponse": {
+				"type": "object",
+				"required": ["message", "campaign"],
+				"properties": {
+					"message": {
+						"type": "string"
+					},
+					"campaign": {
+						"$ref": "#/components/schemas/Campaign"
+					}
+				},
+				"additionalProperties": false
+			},
+			"CampaignReportURLResponse": {
+				"type": "object",
+				"required": ["report_url"],
+				"properties": {
+					"report_url": {
+						"type": "string",
+						"format": "uri"
+					}
+				},
+				"additionalProperties": false
+			},
+			"Tag": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"name": {
+						"type": "string"
+					},
+					"color": {
+						"type": "string"
+					}
+				},
+				"additionalProperties": true
+			},
+			"ScheduledCall": {
+				"type": "object",
+				"required": ["id", "agent_id", "campaign_id", "participant_id", "status", "attempt_count", "duration", "flagged", "tags", "created_at", "updated_at", "agent_name"],
+				"properties": {
+					"id": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"agent_id": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"campaign_id": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"participant_id": {
+						"type": "string"
+					},
+					"status": {
+						"type": "string"
+					},
+					"attempt_count": {
+						"type": "integer"
+					},
+					"last_error": {
+						"type": "string",
+						"nullable": true
+					},
+					"duration": {
+						"type": "integer"
+					},
+					"cost": {
+						"type": "string",
+						"example": "12.50"
+					},
+					"started_at": {
+						"type": "string",
+						"format": "date-time",
+						"nullable": true
+					},
+					"ended_at": {
+						"type": "string",
+						"format": "date-time",
+						"nullable": true
+					},
+					"transcript_url": {
+						"type": "string",
+						"format": "uri",
+						"nullable": true
+					},
+					"transcript_summary": {
+						"type": "string",
+						"nullable": true
+					},
+					"recording_url": {
+						"type": "string",
+						"format": "uri",
+						"nullable": true
+					},
+					"metadata": {
+						"type": "object",
+						"nullable": true,
+						"additionalProperties": true
+					},
+					"call_variables": {
+						"type": "object",
+						"nullable": true,
+						"additionalProperties": true
+					},
+					"flagged": {
+						"type": "boolean"
+					},
+					"tags": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/Tag"
+						}
+					},
+					"created_at": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"updated_at": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"agent_name": {
+						"type": "string"
+					}
+				},
+				"additionalProperties": false
+			},
+			"ScheduledCallsListResponse": {
+				"type": "object",
+				"required": ["scheduled_calls", "page", "page_size", "total"],
+				"properties": {
+					"scheduled_calls": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/ScheduledCall"
+						}
+					},
+					"page": {
+						"type": "integer"
+					},
+					"page_size": {
+						"type": "integer"
+					},
+					"total": {
+						"type": "integer"
+					},
+					"stats": {
+						"$ref": "#/components/schemas/CampaignCallStats"
 					}
 				},
 				"additionalProperties": false
