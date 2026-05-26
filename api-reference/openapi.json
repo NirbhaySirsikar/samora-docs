@@ -1,8 +1,8 @@
 {
 	"openapi": "3.0.3",
 	"info": {
-		"title": "Samora AI Outbound Call API",
-		"description": "The Samora AI Outbound Call API lets you trigger immediate outbound calls through the Samora AI system. Use it to start calls with your AI agents, pass context via metadata, and retrieve call details including transcripts and recordings.\n\n**Phone number format:** Destination numbers must be in E.164 format (e.g. `+919876543210`) and include the country code. The pattern is: `+` followed by 10-15 digits.\n\n**Call statuses:** When you fetch call details, `status` can be: `PENDING`, `TRIGGERED`, `ONGOING`, `CALL_FINISHED`, `UNANSWERED`, `REJECTED`.\n\n**Transcripts and recordings:** For finished calls, presigned URLs for transcript and recording are valid for 60 minutes.\n",
+		"title": "Samora AI API",
+		"description": "The Samora AI API lets you trigger immediate outbound calls and manage outbound campaigns through the Samora AI system. Use it to start calls with your AI agents, pass context via metadata, create campaigns, add recipients, and manage campaign lifecycle from your server.\n\n**Authentication:** Every request must include your organization API key in the `X-API-Key` header. These APIs are intended for server-to-server integrations; do not expose your organization API key in browser or mobile clients.\n\n**Phone number format:** Destination numbers must be in E.164 format (e.g. `+919876543210`) and include the country code. The pattern is: `+` followed by 10-15 digits.\n\n**Call statuses:** When you fetch call details, `status` can be: `PENDING`, `TRIGGERED`, `ONGOING`, `CALL_FINISHED`, `UNANSWERED`, `REJECTED`.\n\n**Campaign statuses:** Campaign `status` can be: `DRAFT`, `SCHEDULED`, `IN_PROGRESS`, `PAUSED`, `FINISHED`, `FAILED`, `CANCELLED`.\n\n**Transcripts and recordings:** For finished calls, presigned URLs for transcript and recording are valid for 60 minutes.\n",
 		"version": "1.0.0",
 		"license": {
 			"name": "Proprietary"
@@ -184,6 +184,354 @@
 								}
 							}
 						}
+					}
+				}
+			}
+		},
+		"/v1/external/campaigns/{agent_id}": {
+			"post": {
+				"description": "Creates a draft outbound campaign for the specified agent. The agent must belong to your organization.",
+				"parameters": [
+					{
+						"$ref": "#/components/parameters/AgentId"
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CreateCampaignRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"201": {
+						"description": "Campaign created successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CreateCampaignResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"$ref": "#/components/responses/BadRequest"
+					},
+					"404": {
+						"$ref": "#/components/responses/NotFound"
+					},
+					"500": {
+						"$ref": "#/components/responses/InternalServerError"
+					}
+				}
+			},
+			"get": {
+				"description": "Lists outbound campaigns for the specified agent.",
+				"parameters": [
+					{
+						"$ref": "#/components/parameters/AgentId"
+					},
+					{
+						"name": "page",
+						"in": "query",
+						"schema": {
+							"type": "integer",
+							"default": 1,
+							"minimum": 1
+						}
+					},
+					{
+						"name": "page_size",
+						"in": "query",
+						"schema": {
+							"type": "integer",
+							"default": 10,
+							"minimum": 1
+						}
+					},
+					{
+						"name": "search",
+						"in": "query",
+						"description": "Search by campaign name.",
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "status",
+						"in": "query",
+						"description": "Filter by campaign status. Repeat the query parameter for multiple statuses.",
+						"schema": {
+							"type": "array",
+							"items": {
+								"$ref": "#/components/schemas/CampaignStatus"
+							}
+						},
+						"style": "form",
+						"explode": true
+					},
+					{
+						"name": "sort_by",
+						"in": "query",
+						"schema": {
+							"type": "string",
+							"default": "created_at"
+						}
+					},
+					{
+						"name": "sort_dir",
+						"in": "query",
+						"schema": {
+							"type": "string",
+							"enum": ["asc", "desc"],
+							"default": "desc"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Campaigns fetched successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ListCampaignsResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"$ref": "#/components/responses/BadRequest"
+					},
+					"404": {
+						"$ref": "#/components/responses/NotFound"
+					},
+					"500": {
+						"$ref": "#/components/responses/InternalServerError"
+					}
+				}
+			}
+		},
+		"/v1/external/campaigns/{agent_id}/{campaign_id}": {
+			"get": {
+				"description": "Retrieves campaign details and aggregate call statistics.",
+				"parameters": [
+					{
+						"$ref": "#/components/parameters/AgentId"
+					},
+					{
+						"$ref": "#/components/parameters/CampaignId"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Campaign fetched successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetCampaignResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"$ref": "#/components/responses/BadRequest"
+					},
+					"404": {
+						"$ref": "#/components/responses/NotFound"
+					},
+					"500": {
+						"$ref": "#/components/responses/InternalServerError"
+					}
+				}
+			},
+			"put": {
+				"description": "Updates settings for a draft campaign.",
+				"parameters": [
+					{
+						"$ref": "#/components/parameters/AgentId"
+					},
+					{
+						"$ref": "#/components/parameters/CampaignId"
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdateCampaignSettingsRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Campaign settings updated successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CampaignEnvelopeResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"$ref": "#/components/responses/BadRequest"
+					},
+					"404": {
+						"$ref": "#/components/responses/NotFound"
+					},
+					"500": {
+						"$ref": "#/components/responses/InternalServerError"
+					}
+				}
+			}
+		},
+		"/v1/external/campaigns/{agent_id}/{campaign_id}/scheduled-calls": {
+			"post": {
+				"description": "Adds recipients to a campaign by creating scheduled outbound call records.",
+				"parameters": [
+					{
+						"$ref": "#/components/parameters/AgentId"
+					},
+					{
+						"$ref": "#/components/parameters/CampaignId"
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/AddCampaignRecipientsRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"201": {
+						"description": "Campaign calls scheduled successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/AddCampaignRecipientsResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"$ref": "#/components/responses/BadRequest"
+					},
+					"404": {
+						"$ref": "#/components/responses/NotFound"
+					},
+					"500": {
+						"$ref": "#/components/responses/InternalServerError"
+					}
+				}
+			}
+		},
+		"/v1/external/campaigns/{agent_id}/{campaign_id}/start": {
+			"post": {
+				"description": "Starts a draft or paused campaign.",
+				"parameters": [
+					{
+						"$ref": "#/components/parameters/AgentId"
+					},
+					{
+						"$ref": "#/components/parameters/CampaignId"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Campaign started successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CampaignEnvelopeResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"$ref": "#/components/responses/BadRequest"
+					},
+					"404": {
+						"$ref": "#/components/responses/NotFound"
+					},
+					"500": {
+						"$ref": "#/components/responses/InternalServerError"
+					}
+				}
+			}
+		},
+		"/v1/external/campaigns/{agent_id}/{campaign_id}/stop": {
+			"post": {
+				"description": "Stops an active campaign and marks it as paused.",
+				"parameters": [
+					{
+						"$ref": "#/components/parameters/AgentId"
+					},
+					{
+						"$ref": "#/components/parameters/CampaignId"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Campaign stopped successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CampaignEnvelopeResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"$ref": "#/components/responses/BadRequest"
+					},
+					"404": {
+						"$ref": "#/components/responses/NotFound"
+					},
+					"500": {
+						"$ref": "#/components/responses/InternalServerError"
+					}
+				}
+			}
+		},
+		"/v1/external/campaigns/{agent_id}/{campaign_id}/cancel": {
+			"post": {
+				"description": "Cancels a campaign and cancels pending outbound calls for it.",
+				"parameters": [
+					{
+						"$ref": "#/components/parameters/AgentId"
+					},
+					{
+						"$ref": "#/components/parameters/CampaignId"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Campaign cancelled successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CampaignEnvelopeResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"$ref": "#/components/responses/BadRequest"
+					},
+					"404": {
+						"$ref": "#/components/responses/NotFound"
+					},
+					"500": {
+						"$ref": "#/components/responses/InternalServerError"
 					}
 				}
 			}
@@ -641,6 +989,60 @@
 				"description": "Your unique organization API key. Required on all requests."
 			}
 		},
+		"parameters": {
+			"AgentId": {
+				"name": "agent_id",
+				"in": "path",
+				"required": true,
+				"description": "The UUID of the AI agent that owns the campaign.",
+				"schema": {
+					"type": "string",
+					"format": "uuid"
+				}
+			},
+			"CampaignId": {
+				"name": "campaign_id",
+				"in": "path",
+				"required": true,
+				"description": "The UUID of the campaign.",
+				"schema": {
+					"type": "string",
+					"format": "uuid"
+				}
+			}
+		},
+		"responses": {
+			"BadRequest": {
+				"description": "Bad request",
+				"content": {
+					"application/json": {
+						"schema": {
+							"$ref": "#/components/schemas/Error"
+						}
+					}
+				}
+			},
+			"NotFound": {
+				"description": "Resource not found or does not belong to your organization",
+				"content": {
+					"application/json": {
+						"schema": {
+							"$ref": "#/components/schemas/Error"
+						}
+					}
+				}
+			},
+			"InternalServerError": {
+				"description": "Internal server error",
+				"content": {
+					"application/json": {
+						"schema": {
+							"$ref": "#/components/schemas/Error"
+						}
+					}
+				}
+			}
+		},
 		"schemas": {
 			"TriggerCallRequest": {
 				"type": "object",
@@ -759,6 +1161,274 @@
 						"nullable": true,
 						"additionalProperties": true,
 						"description": "Additional variables associated with the call (e.g. metadata passed at trigger time). Null if none."
+					}
+				},
+				"additionalProperties": false
+			},
+			"CampaignStatus": {
+				"type": "string",
+				"enum": [
+					"DRAFT",
+					"SCHEDULED",
+					"IN_PROGRESS",
+					"PAUSED",
+					"FINISHED",
+					"FAILED",
+					"CANCELLED"
+				]
+			},
+			"RetryConfig": {
+				"type": "object",
+				"description": "Optional retry behavior for unanswered or failed campaign calls.",
+				"additionalProperties": true
+			},
+			"CreateCampaignRequest": {
+				"type": "object",
+				"required": ["name"],
+				"properties": {
+					"name": {
+						"type": "string",
+						"description": "Campaign name."
+					},
+					"cps": {
+						"type": "integer",
+						"description": "Calls per second for the campaign.",
+						"default": 1
+					},
+					"metadata": {
+						"type": "object",
+						"description": "Optional campaign metadata.",
+						"additionalProperties": true
+					},
+					"retry_config": {
+						"$ref": "#/components/schemas/RetryConfig"
+					}
+				},
+				"additionalProperties": false
+			},
+			"CreateCampaignResponse": {
+				"type": "object",
+				"required": ["message", "campaign_id"],
+				"properties": {
+					"message": {
+						"type": "string"
+					},
+					"campaign_id": {
+						"type": "string",
+						"format": "uuid"
+					}
+				},
+				"additionalProperties": false
+			},
+			"UpdateCampaignSettingsRequest": {
+				"type": "object",
+				"properties": {
+					"max_retries": {
+						"type": "integer",
+						"description": "Maximum number of retry attempts."
+					},
+					"voicemail_msg": {
+						"type": "string",
+						"description": "Message to use when voicemail is detected."
+					},
+					"retry_config": {
+						"$ref": "#/components/schemas/RetryConfig"
+					}
+				},
+				"additionalProperties": false
+			},
+			"Campaign": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"name": {
+						"type": "string"
+					},
+					"agent_id": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"agent_name": {
+						"type": "string",
+						"description": "Agent name, included on responses that join campaign and agent details."
+					},
+					"status": {
+						"$ref": "#/components/schemas/CampaignStatus"
+					},
+					"cps": {
+						"type": "integer"
+					},
+					"metadata": {
+						"type": "object",
+						"additionalProperties": true
+					},
+					"retry_config": {
+						"type": "object",
+						"additionalProperties": true
+					},
+					"schedule_config": {
+						"type": "object",
+						"additionalProperties": true
+					},
+					"call_stats": {
+						"$ref": "#/components/schemas/CampaignCallStats"
+					},
+					"created_at": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"updated_at": {
+						"type": "string",
+						"format": "date-time"
+					}
+				},
+				"additionalProperties": true
+			},
+			"CampaignCallStats": {
+				"type": "object",
+				"properties": {
+					"total": {
+						"type": "integer"
+					},
+					"finished": {
+						"type": "integer"
+					},
+					"pending": {
+						"type": "integer"
+					},
+					"unanswered": {
+						"type": "integer"
+					},
+					"failed": {
+						"type": "integer"
+					},
+					"total_duration": {
+						"type": "string",
+						"description": "Human-readable total call duration."
+					}
+				},
+				"additionalProperties": false
+			},
+			"ListCampaignsResponse": {
+				"type": "object",
+				"required": ["message", "data"],
+				"properties": {
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"type": "object",
+						"required": ["campaigns", "page", "page_size", "total"],
+						"properties": {
+							"campaigns": {
+								"type": "array",
+								"items": {
+									"$ref": "#/components/schemas/Campaign"
+								}
+							},
+							"page": {
+								"type": "integer"
+							},
+							"page_size": {
+								"type": "integer"
+							},
+							"total": {
+								"type": "integer"
+							}
+						},
+						"additionalProperties": false
+					}
+				},
+				"additionalProperties": false
+			},
+			"GetCampaignResponse": {
+				"type": "object",
+				"required": ["message", "data"],
+				"properties": {
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"type": "object",
+						"required": ["campaign", "stats"],
+						"properties": {
+							"campaign": {
+								"$ref": "#/components/schemas/Campaign"
+							},
+							"stats": {
+								"$ref": "#/components/schemas/CampaignCallStats"
+							}
+						},
+						"additionalProperties": false
+					}
+				},
+				"additionalProperties": false
+			},
+			"CampaignEnvelopeResponse": {
+				"type": "object",
+				"required": ["message", "data"],
+				"properties": {
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"$ref": "#/components/schemas/Campaign"
+					}
+				},
+				"additionalProperties": false
+			},
+			"CampaignRecipient": {
+				"type": "object",
+				"required": ["to_number"],
+				"properties": {
+					"to_number": {
+						"type": "string",
+						"description": "Destination phone number in E.164 format.",
+						"pattern": "^\\+[0-9]{10,15}$"
+					},
+					"metadata": {
+						"type": "object",
+						"description": "Optional recipient metadata.",
+						"additionalProperties": true
+					},
+					"call_variables": {
+						"type": "object",
+						"description": "Variables passed to the agent for this recipient.",
+						"additionalProperties": true
+					}
+				},
+				"additionalProperties": false
+			},
+			"AddCampaignRecipientsRequest": {
+				"type": "object",
+				"required": ["phone_numbers"],
+				"properties": {
+					"phone_numbers": {
+						"type": "array",
+						"minItems": 1,
+						"items": {
+							"$ref": "#/components/schemas/CampaignRecipient"
+						}
+					}
+				},
+				"additionalProperties": false
+			},
+			"AddCampaignRecipientsResponse": {
+				"type": "object",
+				"required": ["message", "scheduled_call_ids"],
+				"properties": {
+					"message": {
+						"type": "string"
+					},
+					"scheduled_call_ids": {
+						"type": "array",
+						"items": {
+							"type": "string",
+							"format": "uuid"
+						}
 					}
 				},
 				"additionalProperties": false
