@@ -2,7 +2,7 @@
 	"openapi": "3.0.3",
 	"info": {
 		"title": "Samora AI API",
-		"description": "The Samora AI API lets you trigger immediate outbound calls and manage outbound campaigns through the Samora AI system. Use it to start calls with your AI agents, pass context via metadata, create campaigns, add recipients, and manage campaign lifecycle from your server.\n\n**Authentication:** Every request must include your organization API key in the `X-API-Key` header. These APIs are intended for server-to-server integrations; do not expose your organization API key in browser or mobile clients.\n\n**Phone number format:** Destination numbers must be in E.164 format (e.g. `+919876543210`) and include the country code. The pattern is: `+` followed by 10-15 digits.\n\n**Call statuses:** When you fetch call details, `status` can be: `PENDING`, `TRIGGERED`, `ONGOING`, `CALL_FINISHED`, `UNANSWERED`, `REJECTED`.\n\n**Campaign statuses:** Campaign `status` can be: `DRAFT`, `SCHEDULED`, `IN_PROGRESS`, `PAUSED`, `FINISHED`, `FAILED`, `CANCELLED`.\n\n**Campaign lifecycle:** Recipients can be added only while a campaign is `DRAFT` or `PAUSED`. Campaigns can be started only from `DRAFT` or `PAUSED`, stopped only from `IN_PROGRESS`, and cancelled unless they are already `FINISHED`, `FAILED`, or `CANCELLED`.\n\n**Transcripts and recordings:** For finished calls, presigned URLs for transcript and recording are valid for 60 minutes.\n",
+		"description": "The Samora AI API lets you trigger immediate outbound calls and manage outbound campaigns through the Samora AI system. Use it to start calls with your AI agents, pass per-call context, create campaigns, add recipients, and manage campaign lifecycle from your server.\n\n**Authentication:** Every request must include your organization API key in the `X-API-Key` header. These APIs are intended for server-to-server integrations; do not expose your organization API key in browser or mobile clients.\n\n**Phone number format:** Destination numbers must be in E.164 format (e.g. `+919876543210`) and include the country code. The pattern is: `+` followed by 10-15 digits.\n\n**Call statuses:** When you fetch call details, `status` can be: `PENDING`, `TRIGGERED`, `ONGOING`, `CALL_FINISHED`, `UNANSWERED`, `REJECTED`.\n\n**Campaign statuses:** Campaign `status` can be: `DRAFT`, `SCHEDULED`, `IN_PROGRESS`, `PAUSED`, `FINISHED`, `FAILED`, `CANCELLED`.\n\n**Campaign lifecycle:** Recipients can be added only while a campaign is `DRAFT` or `PAUSED`. Campaigns can be started only from `DRAFT` or `PAUSED`, stopped only from `IN_PROGRESS`, and cancelled unless they are already `FINISHED`, `FAILED`, or `CANCELLED`.\n\n**Transcripts and recordings:** For finished calls, presigned URLs for transcript and recording are valid for 60 minutes.\n",
 		"version": "1.0.0",
 		"license": {
 			"name": "Proprietary"
@@ -1272,20 +1272,8 @@
 					"status": {
 						"$ref": "#/components/schemas/CampaignStatus"
 					},
-					"cps": {
-						"type": "integer"
-					},
-					"metadata": {
-						"type": "object",
-						"additionalProperties": true
-					},
 					"retry_config": {
-						"type": "object",
-						"additionalProperties": true
-					},
-					"schedule_config": {
-						"type": "object",
-						"additionalProperties": true
+						"$ref": "#/components/schemas/RetryConfig"
 					},
 					"call_stats": {
 						"$ref": "#/components/schemas/CampaignCallStats"
@@ -1299,7 +1287,7 @@
 						"format": "date-time"
 					}
 				},
-				"additionalProperties": true
+				"additionalProperties": false
 			},
 			"CampaignCallStats": {
 				"type": "object",
