@@ -89,6 +89,31 @@ When you fetch call details, `status` can be:
 - `UNANSWERED` — No answer
 - `REJECTED` — Call rejected
 
+## Campaign lifecycle
+
+Campaign `status` can be `DRAFT`, `SCHEDULED`, `IN_PROGRESS`, `PAUSED`,
+`FINISHED`, `FAILED`, or `CANCELLED`.
+
+- Add recipients only when campaign status is `DRAFT` or `PAUSED`
+- Start campaigns only from `DRAFT` or `PAUSED`
+- Stop campaigns only from `IN_PROGRESS`
+- Cancel campaigns unless they are already `FINISHED`, `FAILED`, or `CANCELLED`
+
+## Retry configuration
+
+Campaign create and update endpoints accept an optional `retry_config` object:
+
+```json
+{
+	"max_retries": 2,
+	"retry_delay_minutes": 30,
+	"retry_on": ["UNANSWERED", "REJECTED", "VOICEMAIL"]
+}
+```
+
+Supported `retry_on` values are `UNANSWERED`, `REJECTED`, `VOICEMAIL`, and
+`FAILED`.
+
 ## Transcripts and recordings
 
 For finished calls, the Get call details response can include:
