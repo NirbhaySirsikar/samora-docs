@@ -408,6 +408,30 @@
 						"application/json": {
 							"schema": {
 								"$ref": "#/components/schemas/AddCampaignRecipientsRequest"
+							},
+							"examples": {
+								"recipients": {
+									"value": {
+										"phone_numbers": [
+											{
+												"to_number": "+919876543210",
+												"call_variables": {
+													"name": "Aarav Sharma",
+													"customer_id": "CUST-001",
+													"city": "Mumbai"
+												}
+											},
+											{
+												"to_number": "+919812345678",
+												"call_variables": {
+													"name": "Priya Mehta",
+													"customer_id": "CUST-002",
+													"city": "Delhi"
+												}
+											}
+										]
+									}
+								}
 							}
 						}
 					}
