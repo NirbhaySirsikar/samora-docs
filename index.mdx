@@ -99,6 +99,14 @@ Campaign `status` can be `DRAFT`, `SCHEDULED`, `IN_PROGRESS`, `PAUSED`,
 - Stop campaigns only from `IN_PROGRESS`
 - Cancel campaigns unless they are already `FINISHED`, `FAILED`, or `CANCELLED`
 
+## Campaign API limits
+
+- Request body size: 2 MiB
+- Campaign name: up to 120 characters
+- List campaigns `page_size`: up to 100
+- Add recipients: up to 1000 phone numbers per request
+- Recipient `call_variables`: up to 4 KiB per phone number
+
 ## Retry configuration
 
 Campaign create and update endpoints accept an optional `retry_config` object:
@@ -112,7 +120,9 @@ Campaign create and update endpoints accept an optional `retry_config` object:
 ```
 
 Supported `retry_on` values are `UNANSWERED`, `REJECTED`, `VOICEMAIL`, and
-`FAILED`.
+`FAILED`. When `retry_config` is provided, `max_retries` must be between 1 and
+5, `retry_delay_minutes` must be between 1 and 1440, and `retry_on` must include
+at least one supported status.
 
 ## Transcripts and recordings
 

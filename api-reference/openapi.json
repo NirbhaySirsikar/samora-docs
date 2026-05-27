@@ -2,7 +2,7 @@
 	"openapi": "3.0.3",
 	"info": {
 		"title": "Samora AI API",
-		"description": "The Samora AI API lets you trigger immediate outbound calls and manage outbound campaigns through the Samora AI system. Use it to start calls with your AI agents, pass per-call context, create campaigns, add recipients, and manage campaign lifecycle from your server.\n\n**Authentication:** Every request must include your organization API key in the `X-API-Key` header. These APIs are intended for server-to-server integrations; do not expose your organization API key in browser or mobile clients.\n\n**Phone number format:** Destination numbers must be in E.164 format (e.g. `+919876543210`) and include the country code. The pattern is: `+` followed by 10-15 digits.\n\n**Call statuses:** When you fetch call details, `status` can be: `PENDING`, `TRIGGERED`, `ONGOING`, `CALL_FINISHED`, `UNANSWERED`, `REJECTED`.\n\n**Campaign statuses:** Campaign `status` can be: `DRAFT`, `SCHEDULED`, `IN_PROGRESS`, `PAUSED`, `FINISHED`, `FAILED`, `CANCELLED`.\n\n**Campaign lifecycle:** Recipients can be added only while a campaign is `DRAFT` or `PAUSED`. Campaigns can be started only from `DRAFT` or `PAUSED`, stopped only from `IN_PROGRESS`, and cancelled unless they are already `FINISHED`, `FAILED`, or `CANCELLED`.\n\n**Transcripts and recordings:** For finished calls, presigned URLs for transcript and recording are valid for 60 minutes.\n",
+		"description": "The Samora AI API lets you trigger immediate outbound calls and manage outbound campaigns through the Samora AI system. Use it to start calls with your AI agents, pass per-call context, create campaigns, add recipients, and manage campaign lifecycle from your server.\n\n**Authentication:** Every request must include your organization API key in the `X-API-Key` header. These APIs are intended for server-to-server integrations; do not expose your organization API key in browser or mobile clients.\n\n**Phone number format:** Destination numbers must be in E.164 format (e.g. `+919876543210`) and include the country code. The pattern is: `+` followed by 10-15 digits.\n\n**Call statuses:** When you fetch call details, `status` can be: `PENDING`, `TRIGGERED`, `ONGOING`, `CALL_FINISHED`, `UNANSWERED`, `REJECTED`.\n\n**Campaign statuses:** Campaign `status` can be: `DRAFT`, `SCHEDULED`, `IN_PROGRESS`, `PAUSED`, `FINISHED`, `FAILED`, `CANCELLED`.\n\n**Campaign lifecycle:** Recipients can be added only while a campaign is `DRAFT` or `PAUSED`. Campaigns can be started only from `DRAFT` or `PAUSED`, stopped only from `IN_PROGRESS`, and cancelled unless they are already `FINISHED`, `FAILED`, or `CANCELLED`.\n\n**Campaign API limits:** Request bodies are limited to 2 MiB. Campaign names can be up to 120 characters. List requests support `page_size` up to 100. Add recipients accepts up to 1000 phone numbers per request, and each recipient's `call_variables` can be up to 4 KiB.\n\n**Transcripts and recordings:** For finished calls, presigned URLs for transcript and recording are valid for 60 minutes.\n",
 		"version": "1.0.0",
 		"license": {
 			"name": "Proprietary"
@@ -249,7 +249,8 @@
 						"schema": {
 							"type": "integer",
 							"default": 10,
-							"minimum": 1
+							"minimum": 1,
+							"maximum": 100
 						}
 					},
 					{
@@ -1183,17 +1184,22 @@
 				"properties": {
 					"max_retries": {
 						"type": "integer",
-						"minimum": 0,
-						"description": "Maximum retry attempts per recipient call."
+						"minimum": 1,
+						"maximum": 5,
+						"description": "Maximum retry attempts per recipient call. Must be between 1 and 5 when retry_config is provided."
 					},
 					"retry_delay_minutes": {
 						"type": "integer",
 						"minimum": 1,
-						"description": "Delay in minutes before each retry attempt."
+						"maximum": 1440,
+						"description": "Delay in minutes before each retry attempt. Must be between 1 and 1440."
 					},
 					"retry_on": {
 						"type": "array",
 						"description": "Call statuses that should trigger a retry.",
+						"minItems": 1,
+						"maxItems": 4,
+						"uniqueItems": true,
 						"items": {
 							"type": "string",
 							"enum": ["UNANSWERED", "REJECTED", "VOICEMAIL", "FAILED"]
@@ -1213,7 +1219,8 @@
 				"properties": {
 					"name": {
 						"type": "string",
-						"description": "Campaign name."
+						"maxLength": 120,
+						"description": "Campaign name. Maximum 120 characters."
 					},
 					"retry_config": {
 						"$ref": "#/components/schemas/RetryConfig"
@@ -1393,7 +1400,7 @@
 					},
 					"call_variables": {
 						"type": "object",
-						"description": "Variables passed to the agent for this recipient.",
+						"description": "Variables passed to the agent for this recipient. Maximum serialized size is 4 KiB.",
 						"additionalProperties": true
 					}
 				},
@@ -1406,6 +1413,7 @@
 					"phone_numbers": {
 						"type": "array",
 						"minItems": 1,
+						"maxItems": 1000,
 						"items": {
 							"$ref": "#/components/schemas/CampaignRecipient"
 						}
