@@ -21,7 +21,15 @@
 				"group": "API reference",
 				"pages": [
 					"api-reference/endpoint/trigger-call",
-					"api-reference/endpoint/get-call-details"
+					"api-reference/endpoint/get-call-details",
+					"api-reference/endpoint/create-campaign",
+					"api-reference/endpoint/list-campaigns",
+					"api-reference/endpoint/get-campaign",
+					"api-reference/endpoint/update-campaign",
+					"api-reference/endpoint/start-campaign",
+					"api-reference/endpoint/stop-campaign",
+					"api-reference/endpoint/cancel-campaign",
+					"api-reference/endpoint/add-campaign-recipients"
 				]
 			},
 			{

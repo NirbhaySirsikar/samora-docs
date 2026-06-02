@@ -1,0 +1,38 @@
+---
+title: 'Add campaign recipients'
+openapi: 'POST /v1/external/campaigns/{agent_id}/{campaign_id}/scheduled-calls'
+---
+
+## Request body example
+
+Use `phone_numbers` to add recipients to a campaign. Each phone number must be
+in E.164 format. Use `call_variables` to pass per-recipient context to the
+agent.
+
+```json
+{
+	"phone_numbers": [
+		{
+			"to_number": "+919876543210",
+			"call_variables": {
+				"name": "Aarav Sharma",
+				"customer_id": "CUST-001",
+				"city": "Mumbai"
+			}
+		},
+		{
+			"to_number": "+919812345678",
+			"call_variables": {
+				"name": "Priya Mehta",
+				"customer_id": "CUST-002",
+				"city": "Delhi"
+			}
+		}
+	]
+}
+```
+
+<Note>
+	You can add up to 5000 phone numbers in one request. Each recipient's
+	`call_variables` object can be up to 4 KiB.
+</Note>

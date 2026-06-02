@@ -1,14 +1,14 @@
 ---
 title: 'Introduction'
-description: 'Overview of the Samora AI Outbound Call API'
+description: 'Overview of the Samora AI API'
 ---
 
 ## Overview
 
-The Samora AI Outbound Call API lets you trigger immediate outbound calls
-through the Samora AI system. Use it to start calls with your AI agents, pass
-context via metadata, and retrieve call details including transcripts and
-recordings.
+The Samora AI API lets you trigger immediate outbound calls and manage outbound
+campaigns through the Samora AI system. Use it to start calls with your AI
+agents, pass per-call context, create campaigns, add recipients, and manage
+campaign lifecycle from your server.
 
 ## Base URL
 
@@ -25,6 +25,11 @@ Every request must include your organization API key in the header:
 | Header      | Description                      |
 | ----------- | -------------------------------- |
 | `X-API-Key` | Your unique organization API key |
+
+<Note>
+	These APIs are intended for server-to-server integrations. Do not expose your
+	organization API key in browser or mobile clients.
+</Note>
 
 Example:
 
@@ -43,6 +48,19 @@ curl -X POST "https://api.samora.ai/v1/call/trigger" \
 | ------ | -------------------- | --------------------------------------------------------------------------- |
 | POST   | `/v1/call/trigger`   | [Trigger an outbound call](/api-reference/endpoint/trigger-call)            |
 | GET    | `/v1/call/{call_id}` | [Get details for a specific call](/api-reference/endpoint/get-call-details) |
+
+### Campaigns
+
+| Method | Path                                                                 | Description                                                                       |
+| ------ | -------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| POST   | `/v1/external/campaigns/{agent_id}`                                  | [Create a campaign](/api-reference/endpoint/create-campaign)                      |
+| GET    | `/v1/external/campaigns/{agent_id}`                                  | [List campaigns](/api-reference/endpoint/list-campaigns)                          |
+| GET    | `/v1/external/campaigns/{agent_id}/{campaign_id}`                    | [Get campaign details](/api-reference/endpoint/get-campaign)                      |
+| PUT    | `/v1/external/campaigns/{agent_id}/{campaign_id}`                    | [Update campaign settings](/api-reference/endpoint/update-campaign)               |
+| POST   | `/v1/external/campaigns/{agent_id}/{campaign_id}/scheduled-calls`    | [Add campaign recipients](/api-reference/endpoint/add-campaign-recipients)        |
+| POST   | `/v1/external/campaigns/{agent_id}/{campaign_id}/start`              | [Start a campaign](/api-reference/endpoint/start-campaign)                        |
+| POST   | `/v1/external/campaigns/{agent_id}/{campaign_id}/stop`               | [Stop a campaign](/api-reference/endpoint/stop-campaign)                          |
+| POST   | `/v1/external/campaigns/{agent_id}/{campaign_id}/cancel`             | [Cancel a campaign](/api-reference/endpoint/cancel-campaign)                      |
 
 ### Webhooks
 
@@ -70,6 +88,41 @@ When you fetch call details, `status` can be:
 - `CALL_FINISHED` — Call completed
 - `UNANSWERED` — No answer
 - `REJECTED` — Call rejected
+
+## Campaign lifecycle
+
+Campaign `status` can be `DRAFT`, `SCHEDULED`, `IN_PROGRESS`, `PAUSED`,
+`FINISHED`, `FAILED`, or `CANCELLED`.
+
+- Add recipients only when campaign status is `DRAFT` or `PAUSED`
+- Start campaigns only from `DRAFT` or `PAUSED`
+- Stop campaigns only from `IN_PROGRESS`
+- Cancel campaigns unless they are already `FINISHED`, `FAILED`, or `CANCELLED`
+
+## Campaign API limits
+
+- Request body size: 2 MiB
+- Campaign name: up to 120 characters
+- List campaigns `page_size`: up to 100
+- Add recipients: up to 5000 phone numbers per request
+- Recipient `call_variables`: up to 4 KiB per phone number
+
+## Retry configuration
+
+Campaign create and update endpoints accept an optional `retry_config` object:
+
+```json
+{
+	"max_retries": 2,
+	"retry_delay_minutes": 30,
+	"retry_on": ["UNANSWERED", "REJECTED", "VOICEMAIL"]
+}
+```
+
+Supported `retry_on` values are `UNANSWERED`, `REJECTED`, `VOICEMAIL`, and
+`FAILED`. When `retry_config` is provided, `max_retries` must be between 1 and
+5, `retry_delay_minutes` must be between 1 and 1440, and `retry_on` must include
+at least one supported status.
 
 ## Transcripts and recordings
 
