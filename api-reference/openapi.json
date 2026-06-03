@@ -141,10 +141,25 @@
 													"email": "john.doe@example.com",
 													"customer_id": "CUST-001"
 												},
-												"outcome_evaluation": {
-													"disposition": "INTERESTED",
-													"summary": "Customer asked for a follow-up call tomorrow."
-												}
+												"outcome_evaluation": [
+													{
+														"id": "b1h2a3r4-t5i6-7890-1234-567890abcdef",
+														"name": "Final Outcome",
+														"type": "mcq",
+														"answer": "Voicemail Left",
+														"_source": "consensus",
+														"choices": ["Callback Scheduled", "Not Interested", "Voicemail Left", "Hung Up", "Abusive/DNC"],
+														"question": "What was the final outcome of the call?"
+													},
+													{
+														"id": "f5n6o7t8-e9s0-1234-5678-90abcdef1234",
+														"name": "Call Summary",
+														"type": "subjective",
+														"answer": "The call went to voicemail, and the assistant attempted to engage but received no response.",
+														"_source": "primary",
+														"question": "Briefly summarize the call."
+													}
+												]
 											}
 										}
 									}
@@ -1297,13 +1312,54 @@
 						"description": "Additional variables associated with the call (e.g. metadata passed at trigger time). Null if none."
 					},
 					"outcome_evaluation": {
-						"type": "object",
+						"type": "array",
 						"nullable": true,
-						"additionalProperties": true,
-						"description": "Outcome/disposition evaluation generated for the call when available."
+						"description": "Outcome/disposition evaluation answers generated for the call when available.",
+						"items": {
+							"$ref": "#/components/schemas/OutcomeEvaluationItem"
+						}
 					}
 				},
 				"additionalProperties": false
+			},
+			"OutcomeEvaluationItem": {
+				"type": "object",
+				"required": ["id", "name", "type", "answer", "_source", "question"],
+				"properties": {
+					"id": {
+						"type": "string",
+						"description": "Evaluation question identifier."
+					},
+					"name": {
+						"type": "string",
+						"description": "Human-readable evaluation field name."
+					},
+					"type": {
+						"type": "string",
+						"enum": ["mcq", "subjective"],
+						"description": "Evaluation answer type."
+					},
+					"answer": {
+						"type": "string",
+						"description": "Evaluation answer."
+					},
+					"_source": {
+						"type": "string",
+						"description": "Source used to derive the answer, for example primary or consensus."
+					},
+					"choices": {
+						"type": "array",
+						"description": "Possible options for MCQ evaluations.",
+						"items": {
+							"type": "string"
+						}
+					},
+					"question": {
+						"type": "string",
+						"description": "Evaluation question text."
+					}
+				},
+				"additionalProperties": true
 			},
 			"CampaignStatus": {
 				"type": "string",
