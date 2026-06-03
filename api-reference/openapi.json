@@ -141,7 +141,7 @@
 													"email": "john.doe@example.com",
 													"customer_id": "CUST-001"
 												},
-												"outcome_evaluation": [
+												"call_dispositions": [
 													{
 														"id": "b1h2a3r4-t5i6-7890-1234-567890abcdef",
 														"name": "Final Outcome",
@@ -1311,10 +1311,10 @@
 						"additionalProperties": true,
 						"description": "Additional variables associated with the call (e.g. metadata passed at trigger time). Null if none."
 					},
-					"outcome_evaluation": {
+					"call_dispositions": {
 						"type": "array",
 						"nullable": true,
-						"description": "Outcome/disposition evaluation answers generated for the call when available.",
+						"description": "Call disposition evaluation answers generated for the call when available.",
 						"items": {
 							"$ref": "#/components/schemas/OutcomeEvaluationItem"
 						}
