@@ -1,8 +1,8 @@
 ---
 title: 'List campaign calls'
-openapi: 'GET /v1/external/campaigns/{agent_id}/{campaign_id}/scheduled-calls'
+openapi: 'GET /v1/external/campaigns/{agent_id}/{campaign_id}/calls'
 ---
 
 Use this endpoint to inspect recipients/calls created for a campaign and track
-their current call statuses. The response includes a sanitized view of each call
-with phone number, status, timing, duration, and `call_variables`.
+their current call statuses. The response is intentionally lightweight. Use the
+returned call `id` with the Get call details endpoint for the full call record.

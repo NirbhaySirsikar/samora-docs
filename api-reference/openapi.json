@@ -457,7 +457,9 @@
 						"$ref": "#/components/responses/InternalServerError"
 					}
 				}
-			},
+			}
+		},
+		"/v1/external/campaigns/{agent_id}/{campaign_id}/calls": {
 			"get": {
 				"description": "Lists calls/recipients created for a campaign. Use this to track call statuses and inspect per-recipient call variables.",
 				"parameters": [
@@ -1450,17 +1452,9 @@
 			},
 			"CampaignCall": {
 				"type": "object",
-				"required": ["id", "agent_id", "campaign_id", "to_number", "status", "duration", "created_at", "updated_at"],
+				"required": ["id", "to_number", "status"],
 				"properties": {
 					"id": {
-						"type": "string",
-						"format": "uuid"
-					},
-					"agent_id": {
-						"type": "string",
-						"format": "uuid"
-					},
-					"campaign_id": {
 						"type": "string",
 						"format": "uuid"
 					},
@@ -1472,31 +1466,6 @@
 					"status": {
 						"type": "string",
 						"description": "Current call status."
-					},
-					"duration": {
-						"type": "integer",
-						"description": "Call duration in seconds."
-					},
-					"started_at": {
-						"type": "string",
-						"format": "date-time"
-					},
-					"ended_at": {
-						"type": "string",
-						"format": "date-time"
-					},
-					"created_at": {
-						"type": "string",
-						"format": "date-time"
-					},
-					"updated_at": {
-						"type": "string",
-						"format": "date-time"
-					},
-					"call_variables": {
-						"type": "object",
-						"additionalProperties": true,
-						"description": "Variables passed for this recipient when the call was created."
 					}
 				},
 				"additionalProperties": false
@@ -1510,9 +1479,9 @@
 					},
 					"data": {
 						"type": "object",
-						"required": ["scheduled_calls", "page", "page_size", "total"],
+						"required": ["calls", "page", "page_size", "total"],
 						"properties": {
-							"scheduled_calls": {
+							"calls": {
 								"type": "array",
 								"items": {
 									"$ref": "#/components/schemas/CampaignCall"
@@ -1526,9 +1495,6 @@
 							},
 							"total": {
 								"type": "integer"
-							},
-							"stats": {
-								"$ref": "#/components/schemas/CampaignCallStats"
 							}
 						},
 						"additionalProperties": false
