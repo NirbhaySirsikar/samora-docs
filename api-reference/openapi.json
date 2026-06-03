@@ -1452,7 +1452,7 @@
 			},
 			"CampaignCall": {
 				"type": "object",
-				"required": ["id", "to_number", "status"],
+				"required": ["id", "to_number", "status", "duration", "created_at", "updated_at", "started_at", "ended_at"],
 				"properties": {
 					"id": {
 						"type": "string",
@@ -1466,6 +1466,28 @@
 					"status": {
 						"type": "string",
 						"description": "Current call status."
+					},
+					"duration": {
+						"type": "integer",
+						"description": "Call duration in seconds."
+					},
+					"created_at": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"updated_at": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"started_at": {
+						"type": "string",
+						"format": "date-time",
+						"nullable": true
+					},
+					"ended_at": {
+						"type": "string",
+						"format": "date-time",
+						"nullable": true
 					}
 				},
 				"additionalProperties": false
