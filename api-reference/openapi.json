@@ -465,7 +465,7 @@
 		},
 		"/v1/external/campaigns/{agent_id}/{campaign_id}/calls": {
 			"get": {
-				"description": "Lists calls/recipients created for a campaign. Use this to track call statuses and inspect per-recipient call variables.",
+				"description": "Lists calls/recipients created for a campaign. Use this lightweight response to track call statuses. Use Get call details for the full call record.",
 				"parameters": [
 					{
 						"$ref": "#/components/parameters/AgentId"
