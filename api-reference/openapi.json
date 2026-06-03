@@ -457,6 +457,109 @@
 						"$ref": "#/components/responses/InternalServerError"
 					}
 				}
+			},
+			"get": {
+				"description": "Lists calls/recipients created for a campaign. Use this to track call statuses and inspect per-recipient call variables.",
+				"parameters": [
+					{
+						"$ref": "#/components/parameters/AgentId"
+					},
+					{
+						"$ref": "#/components/parameters/CampaignId"
+					},
+					{
+						"name": "page",
+						"in": "query",
+						"schema": {
+							"type": "integer",
+							"default": 1,
+							"minimum": 1
+						}
+					},
+					{
+						"name": "page_size",
+						"in": "query",
+						"schema": {
+							"type": "integer",
+							"default": 10,
+							"minimum": 1,
+							"maximum": 100
+						}
+					},
+					{
+						"name": "search",
+						"in": "query",
+						"description": "Search by recipient phone number.",
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "status",
+						"in": "query",
+						"description": "Filter by call status.",
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "duration_min",
+						"in": "query",
+						"description": "Minimum call duration in seconds.",
+						"schema": {
+							"type": "integer",
+							"minimum": 0
+						}
+					},
+					{
+						"name": "duration_max",
+						"in": "query",
+						"description": "Maximum call duration in seconds.",
+						"schema": {
+							"type": "integer",
+							"minimum": 0
+						}
+					},
+					{
+						"name": "sort_by",
+						"in": "query",
+						"schema": {
+							"type": "string",
+							"enum": ["participant_id", "status", "created_at", "updated_at", "started_at", "ended_at", "duration"],
+							"default": "created_at"
+						}
+					},
+					{
+						"name": "sort_dir",
+						"in": "query",
+						"schema": {
+							"type": "string",
+							"enum": ["asc", "desc"],
+							"default": "desc"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Campaign calls fetched successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ListCampaignCallsResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"$ref": "#/components/responses/BadRequest"
+					},
+					"404": {
+						"$ref": "#/components/responses/NotFound"
+					},
+					"500": {
+						"$ref": "#/components/responses/InternalServerError"
+					}
+				}
 			}
 		},
 		"/v1/external/campaigns/{agent_id}/{campaign_id}/start": {
@@ -1341,6 +1444,94 @@
 					"total_duration": {
 						"type": "string",
 						"description": "Human-readable total call duration."
+					}
+				},
+				"additionalProperties": false
+			},
+			"CampaignCall": {
+				"type": "object",
+				"required": ["id", "agent_id", "campaign_id", "to_number", "status", "duration", "created_at", "updated_at"],
+				"properties": {
+					"id": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"agent_id": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"campaign_id": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"to_number": {
+						"type": "string",
+						"description": "Recipient phone number.",
+						"pattern": "^\\+[0-9]{10,15}$"
+					},
+					"status": {
+						"type": "string",
+						"description": "Current call status."
+					},
+					"duration": {
+						"type": "integer",
+						"description": "Call duration in seconds."
+					},
+					"started_at": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"ended_at": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"created_at": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"updated_at": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"call_variables": {
+						"type": "object",
+						"additionalProperties": true,
+						"description": "Variables passed for this recipient when the call was created."
+					}
+				},
+				"additionalProperties": false
+			},
+			"ListCampaignCallsResponse": {
+				"type": "object",
+				"required": ["message", "data"],
+				"properties": {
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"type": "object",
+						"required": ["scheduled_calls", "page", "page_size", "total"],
+						"properties": {
+							"scheduled_calls": {
+								"type": "array",
+								"items": {
+									"$ref": "#/components/schemas/CampaignCall"
+								}
+							},
+							"page": {
+								"type": "integer"
+							},
+							"page_size": {
+								"type": "integer"
+							},
+							"total": {
+								"type": "integer"
+							},
+							"stats": {
+								"$ref": "#/components/schemas/CampaignCallStats"
+							}
+						},
+						"additionalProperties": false
 					}
 				},
 				"additionalProperties": false

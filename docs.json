@@ -29,7 +29,8 @@
 					"api-reference/endpoint/start-campaign",
 					"api-reference/endpoint/stop-campaign",
 					"api-reference/endpoint/cancel-campaign",
-					"api-reference/endpoint/add-campaign-recipients"
+					"api-reference/endpoint/add-campaign-recipients",
+					"api-reference/endpoint/list-campaign-calls"
 				]
 			},
 			{
