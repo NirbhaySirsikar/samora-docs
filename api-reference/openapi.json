@@ -140,6 +140,10 @@
 													"name": "John Doe",
 													"email": "john.doe@example.com",
 													"customer_id": "CUST-001"
+												},
+												"outcome_evaluation": {
+													"disposition": "INTERESTED",
+													"summary": "Customer asked for a follow-up call tomorrow."
 												}
 											}
 										}
@@ -1291,6 +1295,12 @@
 						"nullable": true,
 						"additionalProperties": true,
 						"description": "Additional variables associated with the call (e.g. metadata passed at trigger time). Null if none."
+					},
+					"outcome_evaluation": {
+						"type": "object",
+						"nullable": true,
+						"additionalProperties": true,
+						"description": "Outcome/disposition evaluation generated for the call when available."
 					}
 				},
 				"additionalProperties": false
